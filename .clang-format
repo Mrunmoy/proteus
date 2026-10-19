@@ -1,0 +1,18 @@
+# Proteus C++ style (matches the project conventions: Allman, 4-space, no tabs).
+Language:        Cpp
+BasedOnStyle:    LLVM
+Standard:        c++17
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Never
+ColumnLimit:     100
+BreakBeforeBraces: Allman
+AccessModifierOffset: -4
+PointerAlignment: Left
+NamespaceIndentation: None
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+SortIncludes:    false
+SpaceAfterCStyleCast: false
+FixNamespaceComments: true

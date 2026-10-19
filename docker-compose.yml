@@ -1,0 +1,56 @@
+# Everything builds in Docker — see ./build.py for the friendly front-end.
+#
+#   ./build.py --images        # build all images (toolchain + mfg + picotool)
+#   ./build.py --firmware      # rp2350 .uf2 images
+#   ./build.py --host-tests    # C++ gtest suite (portable logic + drivers)
+#   ./build.py --asan          # the same suite under AddressSanitizer + UBSan
+#   ./build.py --mfg-tools     # build the manufacturing-station image (GUI + tooling)
+#   ./build.py --mfg-tests     # the station GUI/controller test suite
+#   ./build.py --run-mfg       # launch the station GUI on your desktop
+#   ./build.py --format        # clang-format (C/C++) + black (Python)
+#
+# The repo is mounted at /work; firmware artefacts land in ./build on the host.
+
+services:
+  build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: proteus-toolchain
+    working_dir: /work
+    volumes:
+      - .:/work
+
+  # ── Manufacturing-station GUI — PySide6, event-driven; X11 + USB + udev ────
+  mfg-gui:
+    build:
+      context: .
+      dockerfile: Dockerfile.mfg
+    image: proteus-mfg
+    working_dir: /work
+    privileged: true            # USB (picotool) + device nodes
+    network_mode: host          # pyudev needs the host uevent netlink socket
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_QPA_PLATFORM=xcb
+      - XAUTHORITY=${XAUTHORITY:-}
+    volumes:
+      - .:/work
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /run/udev:/run/udev:ro
+      - /dev:/dev
+    command: python3 tools/mfg/gui/app.py
+
+  # ── Headless test runner for the station code (offscreen Qt) ───────────────
+  mfg-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.mfg
+    image: proteus-mfg
+    working_dir: /work
+    environment:
+      - QT_QPA_PLATFORM=offscreen
+    volumes:
+      - .:/work
+    command: >
+      python3 -m unittest discover -s tools/mfg/gui -p "test_*.py" -v

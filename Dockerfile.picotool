@@ -1,0 +1,23 @@
+# ── picotool 2.1.1 (USB flasher / board query) ──────────────────────────────
+# Layered on the build toolchain (which already carries PICO_SDK_PATH=/opt/pico-sdk,
+# the matching SDK 2.1.1). Adds libusb so picotool can talk to the board over USB.
+# Run with the USB bus mounted to flash/query without the BOOTSEL button:
+#   docker run --rm --privileged -v /dev/bus/usb:/dev/bus/usb \
+#       proteus-picotool picotool info -a
+FROM proteus-toolchain
+
+ARG PICOTOOL_REF=2.1.1
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libusb-1.0-0-dev \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --branch ${PICOTOOL_REF} --depth 1 \
+        https://github.com/raspberrypi/picotool.git /opt/picotool \
+    && cmake -S /opt/picotool -B /opt/picotool/build -G Ninja \
+    && cmake --build /opt/picotool/build \
+    && cmake --install /opt/picotool/build
+
+WORKDIR /work

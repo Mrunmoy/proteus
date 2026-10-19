@@ -1,0 +1,79 @@
+# ── Vendor doc blobs (downloaded from Waveshare wikis) ───────────────
+# Kept on disk under docs/ but NOT tracked in git — too large / re-downloadable.
+# PDFs (schematics, datasheets, SDK guides) and README.md ARE tracked.
+docs/**/*.zip
+docs/**/*.7z
+docs/**/*.xz
+docs/**/*.uf2
+docs/**/*.img
+docs/**/*.img.xz
+docs/**/*.dtbo
+
+# ── C/C++ build (Pico SDK / CMake) ───────────────────────────────────
+# build/, build-host/, build-host-dev/, build-fw/, build-host-local/, …
+build*/
+cmake-build-*/
+
+*.o
+*.a
+*.elf
+*.bin
+*.hex
+*.dis
+*.map
+# firmware build outputs (root/build dirs only — vendor .uf2 already ignored above)
+/*.uf2
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# ── Docker ───────────────────────────────────────────────────────────
+.env
+*.env.local
+
+# ── Editors / OS ─────────────────────────────────────────────────────
+.vscode/
+.idea/
+.claude/
+*.swp
+*~
+.DS_Store
+
+# ── Copyrighted ROM images (NEVER commit) ────────────────────────────
+# Test ROMs are unzipped from ~/Downloads/Super Nintendo/ at test time into
+# a temp dir; any that land in-tree are ignored defensively.
+*.sfc
+*.smc
+*.fig
+*.swc
+*.nes
+*.sms
+*.gg
+*.gb
+*.gba
+*.zip
+test-roms/
+roms/
+
+# factory runtime
+tools/mfg/proteus_serials.jsonl
+tools/mfg/__pycache__/
+tools/mfg/proteus_units.db
+
+# python bytecode (global)
+__pycache__/
+*.pyc
+
+# ── Stray audio capture artifacts ────────────────────────────────────
+*.wav
+
+# ── Emulator debug captures (frame dumps, traces, scratch probes) ────
+# Dumped to the repo root while chasing render bugs; keep them out of git.
+/*.bmp
+/*-trace.txt
+/*-run.txt
+/test_*.cpp
+/test_*_bin

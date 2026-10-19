@@ -1,0 +1,6 @@
+[submodule "external/aether"]
+	path = external/aether
+	url = https://github.com/Mrunmoy/aether.git
+[submodule "external/Pico-PIO-USB"]
+	path = external/Pico-PIO-USB
+	url = https://github.com/sekigon-gonnoc/Pico-PIO-USB.git
