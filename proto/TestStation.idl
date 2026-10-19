@@ -1,0 +1,78 @@
+// TestStation — manufacturing test protocol.
+//
+// THE PC OWNS THE TEST. The device under test is never its own judge: it exposes
+// verb-named OPS that run the REAL product drivers and return RAW observations —
+// never a verdict, never the suite definition. The PC station (tools/mfg/gui)
+// holds the test steps, the pass/fail criteria, and the operator text; the PC
+// applies the criteria and decides pass/fail.
+//
+// Service name is unchanged ("TestStation") so the serviceId (FNV of the name)
+// stays 0xE131D8F3 — the PC client framing keys off it. ipcgen emits the C99
+// device dispatch (proto/gen/aether_lite); the PC client is
+// tools/mfg/gui/devices/rpc_link.py.
+
+struct Identity
+{
+    uint8[8]   chipUid;       // RP2350 64-bit silicon id (always present, unique)
+    uint32     fwVersion;     // packed 0xMMmmPP — the TEST-agent firmware version
+    uint32     protoHash;     // protocol/schema hash for the PC compat cross-check
+};
+
+// The device-info identity block read (XIP) from the reserved flash region. The
+// firmware ONLY READS it (picotool writes it in BOOTSEL); GetDeviceInfo
+// reports it over RPC so the PC can cross-check the claimed device TYPE vs the line
+// config before selecting the profile. `present` = a valid block was found.
+struct DevInfo            // RPC view; distinct name from the contract's DeviceInfo
+{
+    uint8      present;       // 1 = a valid device-info block was read from flash
+    uint8      serialized;    // 1 = serial[0] != 0 (unit has been serialized)
+    uint16     hwRev;
+    uint16     vid;
+    uint16     pid;
+    string[16] model;         // device TYPE, e.g. "RP2350-PiZero"
+    string[16] variant;
+    string[24] serial;        // empty until serialize
+};
+
+service TestStation
+{
+    // ── Identity (read-only; for cross-check + serial<->chipUID binding) ──────
+    [method=1]
+    int GetIdentity([out] Identity id);
+
+    [method=2]
+    int GetDeviceInfo([out] DevInfo info);
+
+    // ── Hardware ops: run the REAL driver, return RAW data. NO verdict. ───────
+
+    // Drive the GamePi13 status LED. `applied` echoes the level the driver set.
+    [method=3]
+    int SetLed([in] uint8 on, [out] uint8 applied);
+
+    // Draw a solid test pattern on the ST7789 over the real SPI display driver.
+    // `pattern`: 0=black 1=red 2=green 3=blue 4=white. `drawn` = pattern shown.
+    [method=4]
+    int LcdShowPattern([in] uint8 pattern, [out] uint8 drawn);
+
+    // Scan the debounced GamePi13 buttons; return the RAW held bitmask (bit i =
+    // hal::Button i held). The PC loops "press UP" … and checks the bits.
+    [method=5]
+    int ScanButtons([out] uint32 held);
+
+    // Play a square-ish tone on the PWM buzzer for `ms` milliseconds. `started`
+    // = the driver accepted the request (operator judges that they heard it).
+    [method=6]
+    int PlayTone([in] uint32 freqHz, [in] uint32 ms, [out] uint8 started);
+
+    // Mount the microSD over the real SDIO driver and read the root directory.
+    // `present` = card mounted + read OK; `files` = entry count seen. The PC asks
+    // the operator to insert a card and passes when present=1.
+    [method=8]
+    int SdProbe([out] uint8 present, [out] uint32 files);
+
+    // Bring up DVI/HDMI over the real driver and show a colour-bar test pattern.
+    // `pattern` reserved (0 = colour bars). `shown` = the driver came up. The PC
+    // asks the operator to confirm the bars on an attached monitor.
+    [method=9]
+    int HdmiShowPattern([in] uint8 pattern, [out] uint8 shown);
+};
