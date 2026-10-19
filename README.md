@@ -174,3 +174,8 @@ The station also handles re-manufacture (keep or replace the serial) and RMA.
 | [Pico-PIO-USB](https://github.com/sekigon-gonnoc/Pico-PIO-USB) | Second USB port | MIT |
 | [aether](https://github.com/Mrunmoy/aether) | RPC framing + IDL codegen | see repo |
 | [diagnostics](https://github.com/Mrunmoy/diagnostics) | Boot/reset diagnostics | see repo |
+
+## License
+
+[MIT](LICENSE). Third-party code under `external/` keeps its own license (see
+the table above), and the vendor PDFs under `docs/` belong to their publishers.
